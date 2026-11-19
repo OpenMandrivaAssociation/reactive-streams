@@ -1,11 +1,11 @@
 Name:		reactive-streams
-Version:	1.0.2
+Version:	1.0.4
 Release:	1
 Summary:	Reactive Streams interfaces for the JVM
 Group:		Development/Java
 License:	CC0-1.0
 URL:		https://github.com/reactive-streams/reactive-streams-jvm
-# Tag v1.0.2. The published jar is the four interfaces under org.reactivestreams.
+# Tag v1.0.4. The jar is the four interfaces plus FlowAdapters.
 Source0:	reactive-streams-%{version}.tar.gz
 
 BuildArch:	noarch
@@ -15,7 +15,8 @@ BuildRequires:	javapackages-filesystem
 
 %description
 org.reactivestreams:reactive-streams %{version}. Publisher, Subscriber,
-Subscription, and Processor.
+Subscription, and Processor. 1.0.4 adds FlowAdapters, the bridge to
+java.util.concurrent.Flow.
 
 %prep
 %autosetup -n reactive-streams-%{version} -p1
@@ -56,7 +57,11 @@ find api/src/main/java -name '*.java' > srcs.list
 test "$(wc -l < srcs.list)" -eq 4
 mkdir -p classes
 javac --release 8 -encoding UTF-8 -Xlint:-options -d classes @srcs.list
-test "$(find classes -name '*.class' | wc -l)" -eq 4
+find api/src/main/java9 -name '*.java' > srcs9.list
+test "$(wc -l < srcs9.list)" -eq 1
+javac --release 9 -encoding UTF-8 -Xlint:-options -cp classes -d classes @srcs9.list
+test "$(find classes -name '*.class' | wc -l)" -eq 13
+test -s classes/org/reactivestreams/FlowAdapters.class
 printf '%%s\n' 'Manifest-Version: 1.0' 'Automatic-Module-Name: org.reactivestreams' "Implementation-Version: %{version}" > manifest.mf
 jar cfm reactive-streams.jar manifest.mf -C classes .
 jar i reactive-streams.jar
